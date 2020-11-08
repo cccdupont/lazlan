@@ -56,7 +56,7 @@ export class App extends LitElement {
         // Instantiate a loader
         const gltfLoader = new GLTFLoader();//FBXLoader();GLTFLoader
         // const filename = "SambaDancing.fbx"
-        const filename = "Chemin_Champignon_test4.glb";
+        const filename = "models/Chemin_Champignon_test4.glb";
         // const filename = "GroundVehicle.glb";
         // const filename = "https://threejsfundamentals.org/threejs/resources/models/cartoon_lowpoly_small_city_free_pack/scene.gltf";
         // const filename = "DJ_Cube_swag.gltf";

@@ -22,7 +22,7 @@
     "three": "0.115.0"
   },
   "scripts": {
-    "build": "tsc --build && webpack --config webpack.config.js",
+    "build": "tsc --build && webpack --config webpack.config.js && cp index.html build/index.html && cp -r models build/models",
     "watch": "tsc --watch",
     "clean": "tsc --build --clean"
   }
