@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    // Code generation options
+    "lib": ["esnext.array", "es2018", "dom"],
+    "target": "es2017",
+    "experimentalDecorators": true,
+    // Static analysis
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    // Build options
+    "sourceMap": true,
+    "declaration": true,
+    "skipLibCheck": true,  // don't report errors from dependencies
+    "declarationMap": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "plugins": [
+      {
+        "name": "ts-lit-plugin",
+        "strict": true,
+      }
+    ],
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "lib"
+  },
+  "include": [
+    "src/*.ts"
+  ]
+}
