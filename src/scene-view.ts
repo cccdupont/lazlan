@@ -16,7 +16,7 @@ export class SceneView {
 
   readonly renderer: THREE.WebGLRenderer;
 
-  farFog: number = 500;
+  farFog: number = 200;
 
   // cameraControls: CameraControls;
 
@@ -29,7 +29,7 @@ export class SceneView {
     this.scene = new THREE.Scene();
     // this.scene.add(new THREE.AmbientLight(0xffffff, 1));
     this.scene.background = new THREE.Color( 0xa2c7ff ); // blue
-    this.scene.fog = new THREE.Fog( 0xa2c7ff, 200, this.farFog );
+    this.scene.fog = new THREE.Fog( 0xa2c7ff, 10, this.farFog );
     // this.scene.add(new THREE.AmbientLight(0xffffff, 0.3));
     // const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
     // hemiLight.position.set( 0, 1000, 0 );

@@ -17,10 +17,17 @@ const clock = new THREE.Clock();
 // step [0, 1, 2, ..., 50, 51, ..., 100]
 // rad  [0, 0,       , Math.PI/2, ... Math.PI]
 // dist [500, ...    , 150, ....., 500]
+// function getPositionFromStep(s: number) {
+//     return {
+//         angle: s*Math.PI/100,
+//         radius: 150 + (1/7.14285714286)*(s-50)*(s-50)
+//     }
+// }
+
 function getPositionFromStep(s: number) {
     return {
-        angle: s*Math.PI/100,
-        radius: 150 + (1/7.14285714286)*(s-50)*(s-50)
+        angle: Math.PI/4,
+        radius: 4*s
     }
 }
 
@@ -33,7 +40,7 @@ export class App extends LitElement {
     object: THREE.Object3D = new THREE.Object3D();
 
     @property({type: Number})
-    public step: number = 50;
+    public step: number = 15;
 
     constructor() {
         super();
@@ -56,7 +63,7 @@ export class App extends LitElement {
         // Instantiate a loader
         const gltfLoader = new GLTFLoader();//FBXLoader();GLTFLoader
         // const filename = "SambaDancing.fbx"
-        const filename = "models/Chemin_Champignon_test4.glb";
+        const filename = "models/Slampadaire_Test_Web.glb"; //"models/Chemin_Champignon_test4.glb";
         // const filename = "GroundVehicle.glb";
         // const filename = "https://threejsfundamentals.org/threejs/resources/models/cartoon_lowpoly_small_city_free_pack/scene.gltf";
         // const filename = "DJ_Cube_swag.gltf";
@@ -81,7 +88,7 @@ export class App extends LitElement {
 
         //     this.viewer.scene.add( object );
         // });
-        
+        const objects: THREE.Object3D[] = [];
         gltfLoader.load(filename, (gltf) => {
             gltf.scene.traverse( ( child ) => {
                 if ( child instanceof THREE.Mesh ) {
@@ -89,8 +96,10 @@ export class App extends LitElement {
                     child.receiveShadow = true;
                 }
             } );
-            const object = gltf.scene.children[ 0 ];
-            object.scale.set(0.1,0.1,0.1);
+            console.log('gltf.scene', gltf.scene.children.length)
+            const object = gltf.scene.children[1];
+
+            gltf.scene.scale.set(0.1,0.1,0.1);
             
             // automatically center model and adjust camera
             const box = new THREE.Box3().setFromObject( gltf.scene );
@@ -99,8 +108,11 @@ export class App extends LitElement {
 
             this.viewer.frameArea(size, size, center);
             // object.position.y += 20;
-            this.viewer.scene.add(object);
-            this.object= object;
+            this.viewer.scene.add(gltf.scene);
+            this.object= gltf.scene;
+            console.log(this.object)
+            objects.push(object);
+            
             // const controls = new OrbitControls( this.viewer.camera, this.viewer.renderer.domElement );
             // controls.rotateSpeed = 2;
             // controls.autoRotate = true;
@@ -108,11 +120,15 @@ export class App extends LitElement {
             // this.controls = controls;
 
             const {angle, radius} = getPositionFromStep(this.step%100);
-            this.viewer.rotateZ(angle, radius); 
+            this.viewer.rotateZ(angle, radius);
 
-            const mixer = new THREE.AnimationMixer( object );
-            mixer.clipAction( gltf.animations[ 0 ] ).setDuration( 1 ).play();
-            mixers.push( mixer );
+            gltf.animations.forEach((animation) => {
+                const mixer = new THREE.AnimationMixer( objects[0] );
+                mixer.clipAction( animation ).setDuration( 1 ).play();
+                mixers.push( mixer );
+            })
+
+
         });
         this.animate3d();
         
@@ -155,9 +171,11 @@ export class App extends LitElement {
         const targetX = this.cameraControls.mouseX * .001;
         // const targetY = this.cameraControls.mouseY * .001;
 
-        if ( this.object ) {
-
-            this.object.rotation.y += 0.05 * ( targetX - this.object.rotation.y );
+        if ( this.object && this.object.children.length == 2) {
+            const eye = this.object.children[0];
+            const body = this.object.children[1];
+            body.rotation.y += 0.02 * ( targetX - body.rotation.y );
+            eye.rotation.y += 0.2 * ( targetX - eye.rotation.y );
             //this.object.rotation.x += 0.05 * ( targetY - this.object.rotation.x );
 
         }
