@@ -78,7 +78,7 @@ export class SceneView {
     renderer.setClearColor(0x000000, 0 );
     this.renderer = renderer;
 
-    const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+    const camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 1, 2000 );
     camera.position.set( 100, 200, 300 );
     this.camera = camera;
     window.addEventListener("resize", () => this.onResize());
