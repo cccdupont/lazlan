@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { CameraControls } from './CameraControls';
 //@ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
+import '@material/mwc-linear-progress';
 
 const mixers: any[] = [];
 const clock = new THREE.Clock();
@@ -45,8 +45,12 @@ export class App extends LitElement {
     // current object
     object: THREE.Object3D = new THREE.Object3D();
 
+    minStep: number = 70;
+
     @property({type: Number})
-    public step: number = 90;
+    public step: number = this.minStep;
+
+    
 
     targetSectionIdx: number = this.step;
 
@@ -309,7 +313,7 @@ export class App extends LitElement {
                 this.userInteract = false;
             } else {
                 const delta = (this.targetSectionIdx*100 + 55) - this.step;
-                this.step += 0.03 * delta;
+                this.step = Math.max(this.step + 0.03 * delta, this.minStep);
                 const { radius } = getPositionFromStep(this.step%100);
                 this.object.position.set(0, 5, radius-40);
             }
@@ -317,20 +321,17 @@ export class App extends LitElement {
 
         // // required if controls.enableDamping or controls.autoRotate are set to true
         // // this.cameraControls.update();
-        const targetX = this.cameraControls.mouseX * .001 - Math.PI/5;
+        const targetX = this.cameraControls.mouseX * .001 - Math.PI/6;
         
         // const targetY = this.cameraControls.mouseY * .001;
         
-        if (this.sectionIdx == 1) {
+        this.object.rotation.y += 0.02 * ( targetX - this.object.rotation.y );
+        if (this.sectionIdx == 1 || this.sectionIdx == 3) {
             const eye = this.object.children[0];
-            const body = this.object.children[1];
-            body.rotation.y += 0.02 * ( targetX - body.rotation.y );
             eye.rotation.y += 0.2 * ( targetX - eye.rotation.y );
         }
         else if ( this.sectionIdx == 2 ) {
-            this.object.rotation.y += 0.02 * ( targetX - this.object.rotation.y );
-            if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
-            {
+            if ( video.readyState === video.HAVE_ENOUGH_DATA ) {
                 videoImageContext.drawImage( video, 0, 0 );
                 if ( videoTexture ) 
                     videoTexture.needsUpdate = true;
@@ -388,6 +389,7 @@ export class App extends LitElement {
         <div style="background: black; width: 100%; height: 100%;">
             <div id="loader" class="lds-ripple" style="opacity: ${this.loaded ? "0" : "1"}"><div></div><div></div></div>
             <main style="opacity: ${this.loaded ? "1" : "0"}">
+                <mwc-linear-progress progress="${this.sectionIdx / 4}"></mwc-linear-progress>
                 <div class="section" id="text1" style="position: absolute; height: 100%; opacity: ${this.sectionIdx === 0 ? '1' : '0'}">
                     <div class="title">Motion Design</div>
                     <div class="subtitle">Guillaume Abramovici</div>
