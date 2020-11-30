@@ -69,6 +69,10 @@ export class App extends LitElement {
             -moz-transition: opacity 1s ease-in-out;
             -ms-transition: opacity 1s ease-in-out;
             -o-transition: opacity 1s ease-in-out;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
         }
         #text1 {
             position: absolute;
@@ -188,7 +192,7 @@ export class App extends LitElement {
     constructor() {
         super();
         this.viewer = new SceneView();
-        this.cameraControls = new CameraControls(this.viewer.domElement);
+        this.cameraControls = new CameraControls();
         const files = [null, "models/Slampadaire_Test_Web.glb", "models/Bouboule_2D_Texture.mp4", "models/Slampadaire_Test_Web.glb"];
         const proms = files.map((f) => this.load(f));
         Promise.all(proms).then((objs) => {
@@ -267,7 +271,8 @@ export class App extends LitElement {
     firstUpdated() {
         //@ts-ignore
         const container = this.shadowRoot!.getElementById("root") as HTMLElement;
-        
+        this.cameraControls.setContainer(this.shadowRoot!.querySelector("main")!);
+
         setTimeout(() => this.loaded = true, 1000);
         
         window.addEventListener('wheel', (evt) => {
@@ -276,7 +281,6 @@ export class App extends LitElement {
             const deltaZoom = (evt as WheelEvent).deltaY *
                 ((evt as WheelEvent).deltaMode == 1 ? 18 : 1) * this.ZOOM_SENSITIVITY;
             this.targetSectionIdx = deltaZoom > 0 ? Math.floor(this.step/100) + 1: Math.floor(this.step/100) - 1;
-            console.log('wheel', this.sectionIdx, this.targetSectionIdx);
 
             this.userInteract = true;
             // this.step += deltaZoom;
@@ -304,35 +308,37 @@ export class App extends LitElement {
                 
                 this.userInteract = false;
             } else {
-                const delta = (this.targetSectionIdx*100 + 55) > this.step ?
-                                Math.max(100 - (this.step % 100), 1) : -Math.max(this.step % 100, 1);
-                this.step += 0.08 * delta;
+                const delta = (this.targetSectionIdx*100 + 55) - this.step;
+                this.step += 0.03 * delta;
                 const { radius } = getPositionFromStep(this.step%100);
                 this.object.position.set(0, 5, radius-40);
             }
         }
 
-        requestAnimationFrame( this.animate3d.bind(this) );
-    
-        // // // required if controls.enableDamping or controls.autoRotate are set to true
-        // // // this.cameraControls.update();
-        // const targetX = this.cameraControls.mouseX * .001;
-        // // const targetY = this.cameraControls.mouseY * .001;
+        // // required if controls.enableDamping or controls.autoRotate are set to true
+        // // this.cameraControls.update();
+        const targetX = this.cameraControls.mouseX * .001 - Math.PI/5;
         
-        // if ( this.object && this.object.children.length == 2) {
-        //     const eye = this.object.children[0];
-        //     const body = this.object.children[1];
-        //     body.rotation.y += 0.02 * ( targetX - body.rotation.y );
-        //     eye.rotation.y += 0.2 * ( targetX - eye.rotation.y );
-        //     //this.object.rotation.x += 0.05 * ( targetY - this.object.rotation.x );
-
-        // }
-        if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
-        {
-            videoImageContext.drawImage( video, 0, 0 );
-            if ( videoTexture ) 
-                videoTexture.needsUpdate = true;
+        // const targetY = this.cameraControls.mouseY * .001;
+        
+        if (this.sectionIdx == 1) {
+            const eye = this.object.children[0];
+            const body = this.object.children[1];
+            body.rotation.y += 0.02 * ( targetX - body.rotation.y );
+            eye.rotation.y += 0.2 * ( targetX - eye.rotation.y );
         }
+        else if ( this.sectionIdx == 2 ) {
+            this.object.rotation.y += 0.02 * ( targetX - this.object.rotation.y );
+            if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
+            {
+                videoImageContext.drawImage( video, 0, 0 );
+                if ( videoTexture ) 
+                    videoTexture.needsUpdate = true;
+            }
+        }
+
+        requestAnimationFrame( this.animate3d.bind(this) );
+        
         // if (this.controls) {
         //     this.controls?.update();
         // }
@@ -379,9 +385,9 @@ export class App extends LitElement {
 
     render() {
         return html`
-        <div style="background: black;">
+        <div style="background: black; width: 100%; height: 100%;">
             <div id="loader" class="lds-ripple" style="opacity: ${this.loaded ? "0" : "1"}"><div></div><div></div></div>
-            <main style="height: 100%; opacity: ${this.loaded ? "1" : "0"}">
+            <main style="opacity: ${this.loaded ? "1" : "0"}">
                 <div class="section" id="text1" style="position: absolute; height: 100%; opacity: ${this.sectionIdx === 0 ? '1' : '0'}">
                     <div class="title">Motion Design</div>
                     <div class="subtitle">Guillaume Abramovici</div>
