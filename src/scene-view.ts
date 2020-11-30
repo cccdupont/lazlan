@@ -16,7 +16,9 @@ export class SceneView {
 
   readonly renderer: THREE.WebGLRenderer;
 
-  farFog: number = 200;
+  farFog: number = 100;
+
+  ground: THREE.Mesh;
 
   // cameraControls: CameraControls;
 
@@ -28,12 +30,21 @@ export class SceneView {
   constructor() {
     this.scene = new THREE.Scene();
     // this.scene.add(new THREE.AmbientLight(0xffffff, 1));
-    this.scene.background = new THREE.Color( 0xa2c7ff ); // blue
-    this.scene.fog = new THREE.Fog( 0xa2c7ff, 10, this.farFog );
+    this.scene.background = new THREE.Color( 0x000000 ); // blue
+    this.scene.fog = new THREE.Fog( 0x000000, 50, 70 );
+    // this.scene.add( new THREE.AmbientLight( 0xffffff ) );
     // this.scene.add(new THREE.AmbientLight(0xffffff, 0.3));
     // const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
     // hemiLight.position.set( 0, 1000, 0 );
     // this.scene.add( hemiLight );
+
+
+
+    // var plane = new THREE.GridHelper(100, 10);
+    // this.scene.add(plane);
+	
+    // var worldAxis = new THREE.AxesHelper(20);
+    // this.scene.add(worldAxis);
 
     // LIGHTS
 
@@ -48,24 +59,24 @@ export class SceneView {
 
     const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
     dirLight.color.setHSL( 0.1, 1, 0.95 );
-    dirLight.position.set( - 1, 1.75, 1 );
+    dirLight.position.set( - 3, -1.75, 2 );
     dirLight.position.multiplyScalar( 30 );
     this.scene.add( dirLight );
 
     dirLight.castShadow = true;
 
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.mapSize.width = 300;
+    dirLight.shadow.mapSize.height = 300;
 
     // shadow size
-    const d = 500;
+    const d = 200;
 
     dirLight.shadow.camera.left = - d;
     dirLight.shadow.camera.right = d;
     dirLight.shadow.camera.top = d;
     dirLight.shadow.camera.bottom = - d;
 
-    dirLight.shadow.camera.far = 3500;
+    dirLight.shadow.camera.far = 500;
     dirLight.shadow.bias = - 0.0001;
 
     // const dirLightHelper = new THREE.DirectionalLightHelper( dirLight, 10 );
@@ -78,9 +89,17 @@ export class SceneView {
     renderer.setClearColor(0x000000, 0 );
     this.renderer = renderer;
 
-    const camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 1, 2000 );
-    camera.position.set( 100, 200, 300 );
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+    camera.position.set(0, 15, 50)
+
+    // const camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    // // 20m height at scene center
+    // // camera.rotation.x = Math.PI/4;
+    // camera.position.set(0, 0, 15);
+    // camera.lookAt(0,-50,0);
     this.camera = camera;
+    // const axesHelper = new THREE.AxesHelper( 5 );
+    // this.scene.add( axesHelper );
     window.addEventListener("resize", () => this.onResize());
 
     // ground
@@ -88,8 +107,8 @@ export class SceneView {
     // mesh.rotation.x = - Math.PI / 2;
     // mesh.receiveShadow = true;
     // this.scene.add( mesh );
-    const groundGeo = new THREE.PlaneBufferGeometry( 5000, 5000 );
-    const groundMat = new THREE.MeshLambertMaterial( { color: 0x8B3365 } );
+    const groundGeo = new THREE.PlaneBufferGeometry( 200, 200, 0 );
+    const groundMat = new THREE.MeshLambertMaterial( { color: 0xDC143C, fog: true } );
     
     // var texture, material;
 
@@ -102,10 +121,18 @@ export class SceneView {
     // scene.add(plane);
 
 
-    const ground = new THREE.Mesh( groundGeo, groundMat );
-    ground.rotation.x = - Math.PI / 2;
-    ground.receiveShadow = true;
-    this.scene.add( ground );
+    this.ground = new THREE.Mesh( groundGeo, groundMat );
+    this.ground.rotation.x = - Math.PI / 2;
+    this.ground.receiveShadow = true;
+    this.scene.add( this.ground );
+
+//     var geometry = new THREE.PlaneBufferGeometry(100, 100, 0);
+// var material = new THREE.MeshLambertMaterial({
+//   color: 0x898989,
+//   fog: true
+// });
+// var plane = new THREE.Mesh(geometry, material);
+// this.scene.add(plane);
     
 
     // Event
