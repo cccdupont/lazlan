@@ -14,16 +14,6 @@ import '@material/mwc-linear-progress';
 const mixers: any[] = [];
 const clock = new THREE.Clock();
 
-// step [0, 1, 2, ..., 50, 51, ..., 100]
-// rad  [0, 0,       , Math.PI/2, ... Math.PI]
-// dist [500, ...    , 150, ....., 500]
-// function getPositionFromStep(s: number) {
-//     return {
-//         angle: s*Math.PI/100,
-//         radius: 150 + (1/7.14285714286)*(s-50)*(s-50)
-//     }
-// }
-
 function getPositionFromStep(s: number) {
     return {
         angle: Math.PI/4,
@@ -31,10 +21,7 @@ function getPositionFromStep(s: number) {
     }
 }
 
-const videoImage = document.createElement( 'canvas' );
-const video = document.createElement( 'video' );
-const videoImageContext = videoImage.getContext( '2d' )!;
-let videoTexture: any;
+
 
 @customElement('lzl-app' as any)
 export class App extends LitElement {
@@ -45,12 +32,10 @@ export class App extends LitElement {
     // current object
     object: THREE.Object3D = new THREE.Object3D();
 
-    minStep: number = 70;
+    minStep: number = 50;
 
     @property({type: Number})
     public step: number = this.minStep;
-
-    
 
     targetSectionIdx: number = this.step;
 
@@ -77,17 +62,16 @@ export class App extends LitElement {
             top: 0;
             width: 100%;
             height: 100%;
+           position: relative;
+           margin: auto;
+        }
+        @media only screen and (min-width: 992px) {
+            main {
+                width: 1200px;
+            }
         }
         #text1 {
-            position: absolute;
             opacity: 1;
-            color: white;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            margin: auto;
-            text-align: center;
-            flex-direction: column;
         }
         #text2 {
             display: flex;
@@ -110,6 +94,23 @@ export class App extends LitElement {
             line-height: 1.2;
             font-size: 2.5vw;
         }
+        .header {
+            float: right;
+            font-size: 20px;
+            font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+            margin-block-start: 1.2em;
+        }
+        .header > a  {
+            margin-right: 1.5em;
+            color: #1c1c1c;
+            text-decoration: none;
+            letter-spacing: .05em;
+            font-weight: 300;
+            cursor: pointer;
+        }
+        .nav-select {
+            text-decoration: overline !important;
+        }
         .title {
             width: 100%;
             text-transform: uppercase;
@@ -121,18 +122,21 @@ export class App extends LitElement {
             background-clip: text;
             text-fill-color: transparent;
             font-weight: 100;
-            font-size: 7vw;
+            font-size: 30px;
+            margin-left: 40px;
             letter-spacing: 0.5vw;
             margin-block-start: 0.67em;
             margin-block-end: 0.67em;
             font-family: Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
         }
         .subtitle {
-            font-size: 1.25rem;
-            color: rgb(98 98 99);
-            font-weight: 300;
-            font-family: Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-            margin-block-start: 1em;
+            font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+            color: #1c1c1c;
+            margin-block-start: 1.2em;
+            letter-spacing: -.02em;
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 20px;
         }
         .section {
             -webkit-transition: opacity 0.5s ease-in-out;
@@ -197,7 +201,7 @@ export class App extends LitElement {
         super();
         this.viewer = new SceneView();
         this.cameraControls = new CameraControls();
-        const files = [null, "models/Slampadaire_Test_Web.glb", "models/Bouboule_2D_Texture.mp4", "models/Slampadaire_Test_Web.glb"];
+        const files = ["models/Slampadaire_Test_Web.glb", "models/champi.mp4", "models/Bouboule_2D_Texture.mp4", "models/Slampadaire_Test_Web.glb"];
         const proms = files.map((f) => this.load(f));
         Promise.all(proms).then((objs) => {
             this.objects = objs;
@@ -242,13 +246,18 @@ export class App extends LitElement {
                 })
             })
         } else if (f?.endsWith('.mp4')) {
+            console.log('new mp4', f)
             return new Promise((res) => {
+                const videoImage = document.createElement( 'canvas' );
+                const video = document.createElement( 'video' );
+                const videoImageContext = videoImage.getContext( '2d' )!;
+                let videoTexture: any;
                 video.src = f;
                 video.muted = true;
                 video.loop = true;
                 video.load(); // must call after setting/changing source
-                video.play();
-                
+                video.play()
+                console.log('played prom', f)
                 videoImage.width = 1080;
                 videoImage.height = 1080;
 
@@ -266,7 +275,6 @@ export class App extends LitElement {
                 var movieGeometry = new THREE.PlaneGeometry( 50, 32, 4, 4 );
                 var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
                 res(movieScreen);
-                
             })
         }
         return Promise.resolve(null);
@@ -321,22 +329,28 @@ export class App extends LitElement {
 
         // // required if controls.enableDamping or controls.autoRotate are set to true
         // // this.cameraControls.update();
-        const targetX = this.cameraControls.mouseX * .001 - Math.PI/6;
+        
         
         // const targetY = this.cameraControls.mouseY * .001;
+
+        if (this.object) {
+
+            const targetX = this.cameraControls.mouseX * .001 - Math.PI/6;
+            this.object.rotation.y += 0.02 * ( targetX - this.object.rotation.y );
+            // if (this.sectionIdx == 0) {
+            //     const eye = this.object.children[0];
+            //     eye.rotation.y += 0.2 * ( targetX - eye.rotation.y );
+            // }
+        }
         
-        this.object.rotation.y += 0.02 * ( targetX - this.object.rotation.y );
-        if (this.sectionIdx == 1 || this.sectionIdx == 3) {
-            const eye = this.object.children[0];
-            eye.rotation.y += 0.2 * ( targetX - eye.rotation.y );
-        }
-        else if ( this.sectionIdx == 2 ) {
-            if ( video.readyState === video.HAVE_ENOUGH_DATA ) {
-                videoImageContext.drawImage( video, 0, 0 );
-                if ( videoTexture ) 
-                    videoTexture.needsUpdate = true;
-            }
-        }
+
+        // else if ( this.sectionIdx == 1 ) {
+        //     if ( video.readyState === video.HAVE_ENOUGH_DATA ) {
+        //         videoImageContext.drawImage( video, 0, 0 );
+        //         if ( videoTexture ) 
+        //             videoTexture.needsUpdate = true;
+        //     }
+        // }
 
         requestAnimationFrame( this.animate3d.bind(this) );
         
@@ -364,6 +378,9 @@ export class App extends LitElement {
                 this.object = new THREE.Object3D();
             }
             this.viewer.scene.add(this.object);
+            // if (this.sectionIdx == 1) {
+            //     video.play();
+            // }
         }
         if (changedProps.has('step')) {
             this.sectionIdx = Math.floor(this.step/100);
@@ -386,15 +403,20 @@ export class App extends LitElement {
 
     render() {
         return html`
-        <div style="background: black; width: 100%; height: 100%;">
-            <div id="loader" class="lds-ripple" style="opacity: ${this.loaded ? "0" : "1"}"><div></div><div></div></div>
-            <main style="opacity: ${this.loaded ? "1" : "0"}">
-                <mwc-linear-progress progress="${this.sectionIdx / 4}"></mwc-linear-progress>
+        <div style="width: 100%; height: 100%;">
+            <div id="loader" class="lds-ripple" style="opacity: ${this.loaded ? "0" : "1"}; display: none;"><div></div><div></div></div>
+            <mwc-linear-progress progress="${this.sectionIdx / 4}"></mwc-linear-progress>
+            <main style="opacity: ${this.loaded ? "1" : "0"}"> 
+                <div class="header">
+                    <a class=${this.sectionIdx == 0 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 0}}>Home</a>
+                    <a class=${this.sectionIdx == 1 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 1}}>Showreel</a>
+                    <a class=${this.sectionIdx == 2 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 2}}>Work</a>
+                    <a class=${this.sectionIdx == 3 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 3}}>About</a>
+                    <a class=${this.sectionIdx == 4 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 4}}>Contact</a>
+                </div>
                 <div class="section" id="text1" style="position: absolute; height: 100%; opacity: ${this.sectionIdx === 0 ? '1' : '0'}">
-                    <div class="title">Motion Design</div>
                     <div class="subtitle">Guillaume Abramovici</div>
-                    <div class="arrow"></div>
-                    <p>Scroll</p>
+                    <div class="title">Motion Design</div>
                 </div>
                 <div class="section" id="text2" style="position: absolute; height: 100%; opacity: ${this.sectionIdx === 2 ? '1' : '0'}">
                     Blabla

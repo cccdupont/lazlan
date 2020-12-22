@@ -30,13 +30,13 @@ export class SceneView {
   constructor() {
     this.scene = new THREE.Scene();
     // this.scene.add(new THREE.AmbientLight(0xffffff, 1));
-    this.scene.background = new THREE.Color( 0x000000 ); // blue
-    this.scene.fog = new THREE.Fog( 0x000000, 50, 70 );
-    // this.scene.add( new THREE.AmbientLight( 0xffffff ) );
+    this.scene.background = new THREE.Color( 0xffffff ); // blue
+    //this.scene.fog = new THREE.Fog( 0xffffff, 50, 70 );
+    this.scene.add( new THREE.AmbientLight( 0xffffff, 0.3 ) );
     // this.scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-    // const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-    // hemiLight.position.set( 0, 1000, 0 );
-    // this.scene.add( hemiLight );
+    const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+    hemiLight.position.set( 0, 1000, 0 );
+    this.scene.add( hemiLight );
 
 
 
@@ -48,36 +48,36 @@ export class SceneView {
 
     // LIGHTS
 
-    const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
-    hemiLight.color.setHSL( 0.6, 1, 0.6 );
-    hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-    hemiLight.position.set( 0, 50, 0 );
-    this.scene.add( hemiLight );
+    // const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
+    // hemiLight.color.setHSL( 0.6, 1, 0.6 );
+    // hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+    // hemiLight.position.set( 0, 50, 0 );
+    // this.scene.add( hemiLight );
 
-    // const hemiLightHelper = new THREE.HemisphereLightHelper( hemiLight, 10 );
-    // this.scene.add( hemiLightHelper );
+    // // const hemiLightHelper = new THREE.HemisphereLightHelper( hemiLight, 10 );
+    // // this.scene.add( hemiLightHelper );
 
-    const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
-    dirLight.color.setHSL( 0.1, 1, 0.95 );
-    dirLight.position.set( - 3, -1.75, 2 );
-    dirLight.position.multiplyScalar( 30 );
-    this.scene.add( dirLight );
+    // const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
+    // dirLight.color.setHSL( 0.1, 1, 0.95 );
+    // dirLight.position.set( - 3, -1.75, 2 );
+    // dirLight.position.multiplyScalar( 30 );
+    // this.scene.add( dirLight );
 
-    dirLight.castShadow = true;
+    // dirLight.castShadow = true;
 
-    dirLight.shadow.mapSize.width = 300;
-    dirLight.shadow.mapSize.height = 300;
+    // dirLight.shadow.mapSize.width = 300;
+    // dirLight.shadow.mapSize.height = 300;
 
-    // shadow size
-    const d = 200;
+    // // shadow size
+    // const d = 200;
 
-    dirLight.shadow.camera.left = - d;
-    dirLight.shadow.camera.right = d;
-    dirLight.shadow.camera.top = d;
-    dirLight.shadow.camera.bottom = - d;
+    // dirLight.shadow.camera.left = - d;
+    // dirLight.shadow.camera.right = d;
+    // dirLight.shadow.camera.top = d;
+    // dirLight.shadow.camera.bottom = - d;
 
-    dirLight.shadow.camera.far = 500;
-    dirLight.shadow.bias = - 0.0001;
+    // dirLight.shadow.camera.far = 500;
+    // dirLight.shadow.bias = - 0.0001;
 
     // const dirLightHelper = new THREE.DirectionalLightHelper( dirLight, 10 );
     // this.scene.add( dirLightHelper );
