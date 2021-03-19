@@ -1,33 +1,24 @@
 import { css, customElement, html, LitElement, property } from 'lit-element';
 import { SceneView } from './scene-view';
-//@ts-ignore
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-//@ts-ignore
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
-// import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import * as THREE from 'three';
-import { CameraControls } from './CameraControls';
+// import { CameraControls } from './CameraControls';
 //@ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import * as Loaders from './loaders';
+import { VideoWall } from './video-wall';
 import '@material/mwc-linear-progress';
 
-const mixers: any[] = [];
-const clock = new THREE.Clock();
-
-function getPositionFromStep(s: number) {
-    return {
-        angle: Math.PI/4,
-        radius: s
-    }
-}
+// const mixers: any[] = [];
 
 
+let showreelVideo: any;
+let wallVideo: any;
 
 @customElement('lzl-app' as any)
 export class App extends LitElement {
     controls: OrbitControls | null = null;
     viewer: SceneView;
-    cameraControls: CameraControls;
+    // cameraControls: CameraControls;
     mesh: THREE.Mesh = new THREE.Mesh();
     // current object
     object: THREE.Object3D = new THREE.Object3D();
@@ -52,147 +43,14 @@ export class App extends LitElement {
     userInteract: boolean = false;
 
     static get styles() {
-        return css`
-        main {
-            -webkit-transition: opacity 1s ease-in-out;
-            -moz-transition: opacity 1s ease-in-out;
-            -ms-transition: opacity 1s ease-in-out;
-            -o-transition: opacity 1s ease-in-out;
-            position: absolute;
-            top: 0;
-            width: 100%;
-            height: 100%;
-           position: relative;
-           margin: auto;
+        return css`        
+        canvas {
+            position: fixed; top: 0; left: 0;
         }
-        @media only screen and (min-width: 992px) {
-            main {
-                width: 1200px;
-            }
+        
+        div#size {
+            height: 6000px;
         }
-        #text1 {
-            opacity: 1;
-        }
-        #text2 {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            position: fixed;
-            z-index: 1;
-            will-change: opacity;
-            opacity: 0;
-            top: 0;
-            line-height: 1.2;
-            font-size: 1.5rem;
-            text-align: center;
-            color: white;
-            max-width: calc(100% - 80px);
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 0 40px;
-            line-height: 1.2;
-            font-size: 2.5vw;
-        }
-        .header {
-            float: right;
-            font-size: 20px;
-            font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif !important;
-            margin-block-start: 1.2em;
-        }
-        .header > a  {
-            margin-right: 1.5em;
-            color: #1c1c1c;
-            text-decoration: none;
-            letter-spacing: .05em;
-            font-weight: 300;
-            cursor: pointer;
-        }
-        .nav-select {
-            text-decoration: overline !important;
-        }
-        .title {
-            width: 100%;
-            text-transform: uppercase;
-            margin-bottom: 0px;
-            background: linear-gradient(40deg, #fdf680 0%,#d6716d 50%, #a0fafb 100%);
-            background-size: cover;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-fill-color: transparent;
-            font-weight: 100;
-            font-size: 30px;
-            margin-left: 40px;
-            letter-spacing: 0.5vw;
-            margin-block-start: 0.67em;
-            margin-block-end: 0.67em;
-            font-family: Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-        }
-        .subtitle {
-            font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif !important;
-            color: #1c1c1c;
-            margin-block-start: 1.2em;
-            letter-spacing: -.02em;
-            font-weight: bold;
-            margin-left: 10px;
-            font-size: 20px;
-        }
-        .section {
-            -webkit-transition: opacity 0.5s ease-in-out;
-            -moz-transition: opacity 0.5s ease-in-out;
-            -ms-transition: opacity 0.5s ease-in-out;
-            -o-transition: opacity 0.5s ease-in-out;
-        }
-          .lds-ripple {
-            display: inline-block;
-            position: relative;
-            width: 80px;
-            height: 80px;
-            top: 45vh;
-            margin: auto;
-            -webkit-transition: opacity 0.5s ease-in-out;
-            -moz-transition: opacity 0.5s ease-in-out;
-            -ms-transition: opacity 0.5s ease-in-out;
-            -o-transition: opacity 0.5s ease-in-out;
-            display: flex;
-          }
-          .lds-ripple div {
-            position: absolute;
-            border: 4px solid #fff;
-            opacity: 1;
-            border-radius: 50%;
-            animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
-          }
-          .lds-ripple div:nth-child(2) {
-            animation-delay: -0.5s;
-          }
-          @keyframes lds-ripple {
-            0% {
-              top: 36px;
-              left: 36px;
-              width: 0;
-              height: 0;
-              opacity: 1;
-            }
-            100% {
-              top: 0px;
-              left: 0px;
-              width: 72px;
-              height: 72px;
-              opacity: 0;
-            }
-          }
-
-          .arrow {
-            margin-block-start: 7em;
-            width: 24px;
-            height: 24px;
-            border-left: 1px solid rgb(255, 255, 255);
-            border-bottom: 1px solid rgb(255, 255, 255);
-            transform: rotate(-45deg);
-            box-sizing: border-box;
-          }
         
         `;
     }
@@ -200,230 +58,94 @@ export class App extends LitElement {
     constructor() {
         super();
         this.viewer = new SceneView();
-        this.cameraControls = new CameraControls();
-        const files = ["models/Slampadaire_Test_Web.glb", "models/champi.mp4", "models/Bouboule_2D_Texture.mp4", "models/Slampadaire_Test_Web.glb"];
-        const proms = files.map((f) => this.load(f));
-        Promise.all(proms).then((objs) => {
-            this.objects = objs;
-            if (objs[0]) {
-                this.object = objs[0];
-                const { radius } = getPositionFromStep(this.step%100);
-                this.object.position.set(0, 5, radius-40);
-                this.viewer.scene.add(this.object);
-            }
+        Loaders.loadGlb("models/Champ'Einstein_Dance_2_color_ggod.glb").then((obj) => {
+            // obj.position.y = 5;
+            this.viewer.scene.add(obj);
         });
-    }
+        Loaders.loadVideo("models/showreel.mp4").then((vid) => {
+            vid.mesh.position.y = -2;
+            showreelVideo = vid;
+            this.viewer.scene.add(vid.mesh);
+        });
+        const videoWall = new VideoWall([
+            "models/champi.mp4", "models/Bouboule_2D_Texture.mp4", "models/drummer.mp4",
+            "models/desert.mp4", "models/street.mp4", "models/2020.mp4",
+            "models/lava_lamp.mp4", "models/robot.mp4", "models/planet.mp4"
+        ]);
+        videoWall.position.y = -3.5;
+        wallVideo = videoWall;
+        // wallVideo.play();
+        this.viewer.scene.add(videoWall);
+        Loaders.loadGlb("models/Slampadaire_Test_Web.glb").then((obj) => {
+            obj.scale.x *= 0.4;
+            obj.scale.y *= 0.4;
+            obj.scale.z *= 0.4;
+            obj.position.y = -5.5;
+            obj.position.x = -0.5;
+            this.viewer.scene.add(obj);
+        });
+        const loader = new THREE.FontLoader();
 
-    load(f: string | null): Promise<any> {
-        const gltfLoader = new GLTFLoader();
-        if (f?.endsWith('.glb')) {
-            return new Promise((res) => {
-                gltfLoader.load(f, (gltf) => {
-                    gltf.scene.traverse( ( child ) => {
-                        if ( child instanceof THREE.Mesh ) {
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                            (child.material as THREE.Material).fog = true;
-                            // (child.material as any).transparent = true;
-                        }
-                    } );
-                    const object = gltf.scene;
-        
-                    // rescale object to be around 40m
-                    const initSize = new THREE.Box3()
-                                    .setFromObject( object )
-                                    .getSize( new THREE.Vector3() )
-                                    .length();
-                    object.scale.set(40/initSize,40/initSize,40/initSize);
-                    
+        loader.load( 'models/optimer_regular.typeface.json', ( font ) => {
 
-                    // gltf.animations.forEach((animation) => {
-                    //     const mixer = new THREE.AnimationMixer( objects[0] );
-                    //     mixer.clipAction( animation ).setDuration( 1 ).play();
-                    //     mixers.push( mixer );
-                    // })
-                    res(object);
-                })
-            })
-        } else if (f?.endsWith('.mp4')) {
-            console.log('new mp4', f)
-            return new Promise((res) => {
-                const videoImage = document.createElement( 'canvas' );
-                const video = document.createElement( 'video' );
-                const videoImageContext = videoImage.getContext( '2d' )!;
-                let videoTexture: any;
-                video.src = f;
-                video.muted = true;
-                video.loop = true;
-                video.load(); // must call after setting/changing source
-                video.play()
-                console.log('played prom', f)
-                videoImage.width = 1080;
-                videoImage.height = 1080;
-
-                // background color if no video present
-                videoImageContext.fillStyle = '#000000';
-                videoImageContext.fillRect( 0, 0, videoImage.width, videoImage.height );
-
-                videoTexture = new THREE.Texture( videoImage );
-                videoTexture.minFilter = THREE.LinearFilter;
-                videoTexture.magFilter = THREE.LinearFilter;
-                
-                var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, side:THREE.DoubleSide } );
-                // the geometry on which the movie will be displayed;
-                // 		movie image will be scaled to fit these dimensions.
-                var movieGeometry = new THREE.PlaneGeometry( 50, 32, 4, 4 );
-                var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
-                res(movieScreen);
-            })
-        }
-        return Promise.resolve(null);
+            const geometry = new THREE.TextGeometry( 'Hello three.js!', {
+                font: font,
+                size: 0.1,
+                height: 0.1,
+                curveSegments: 12,
+                bevelEnabled: false
+            } );
+            const materials = [
+                new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } ), // front
+                new THREE.MeshPhongMaterial( { color: 0xffffff } ) // side
+            ];
+            const m = new THREE.Mesh( geometry, materials );
+            m.position.y = -5.5;
+            this.viewer.scene.add(m);
+        } );
     }
 
     firstUpdated() {
         //@ts-ignore
-        const container = this.shadowRoot!.getElementById("root") as HTMLElement;
-        this.cameraControls.setContainer(this.shadowRoot!.querySelector("main")!);
+        const container = this.shadowRoot!.getElementById("size") as HTMLElement;
+        // this.cameraControls.setContainer(this.shadowRoot!.querySelector("main")!);
 
         setTimeout(() => this.loaded = true, 1000);
-        
-        window.addEventListener('wheel', (evt) => {
-            // console.log(evt.deltaY);
-            
-            const deltaZoom = (evt as WheelEvent).deltaY *
-                ((evt as WheelEvent).deltaMode == 1 ? 18 : 1) * this.ZOOM_SENSITIVITY;
-            this.targetSectionIdx = deltaZoom > 0 ? Math.floor(this.step/100) + 1: Math.floor(this.step/100) - 1;
-
-            this.userInteract = true;
-            // this.step += deltaZoom;
-            // this.step = Math.max(this.step, 0);
-
-            // this.object.traverse( ( child ) => {
-            //     if ( child instanceof THREE.Mesh ) {
-                    
-            //         // set opacity to 50%
-            //         (child.material as any).opacity = radius < 20 ? (radius-15)/5 : 1;
-            //     }
-            // } );
-             
-        });
         container.appendChild(this.viewer.domElement);
-        this.viewer.onResize();
+        container.addEventListener('wheel', () => {
+            if (showreelVideo && this.viewer.isOffScreen(showreelVideo.mesh)) {
+                showreelVideo.play();
+            } else {
+                showreelVideo.pause();
+            }
+            // if (wallVideo && this.viewer.isOffScreen(wallVideo)) {
+            //     wallVideo.play();
+            // } else {
+            //     wallVideo.pause();
+            // }
+            // t is 0 to 1
+            const t = window.scrollY / (5000 - window.innerHeight);
+            this.viewer.camera.position.y = 0.2 - 5 * t;
+        })
+        this.viewer.fitWindow();
+
         this.animate3d();
-        
     }
 
 
     animate3d () {
-        if (this.userInteract) {
-            if (this.targetSectionIdx == this.sectionIdx && Math.abs(this.step % 100 - 55) < 5) {
-                
-                this.userInteract = false;
-            } else {
-                const delta = (this.targetSectionIdx*100 + 55) - this.step;
-                this.step = Math.max(this.step + 0.03 * delta, this.minStep);
-                const { radius } = getPositionFromStep(this.step%100);
-                this.object.position.set(0, 5, radius-40);
-            }
-        }
-
-        // // required if controls.enableDamping or controls.autoRotate are set to true
-        // // this.cameraControls.update();
-        
-        
-        // const targetY = this.cameraControls.mouseY * .001;
-
-        if (this.object) {
-
-            const targetX = this.cameraControls.mouseX * .001 - Math.PI/6;
-            this.object.rotation.y += 0.02 * ( targetX - this.object.rotation.y );
-            // if (this.sectionIdx == 0) {
-            //     const eye = this.object.children[0];
-            //     eye.rotation.y += 0.2 * ( targetX - eye.rotation.y );
-            // }
-        }
-        
-
-        // else if ( this.sectionIdx == 1 ) {
-        //     if ( video.readyState === video.HAVE_ENOUGH_DATA ) {
-        //         videoImageContext.drawImage( video, 0, 0 );
-        //         if ( videoTexture ) 
-        //             videoTexture.needsUpdate = true;
-        //     }
-        // }
 
         requestAnimationFrame( this.animate3d.bind(this) );
-        
-        // if (this.controls) {
-        //     this.controls?.update();
-        // }
-        const delta = clock.getDelta();
-
-				for ( let i = 0; i < mixers.length; i ++ ) {
-
-					mixers[ i ].update( delta );
-
-				}
+        // (mesh as any).rotation.x += 0.01;
+        // (mesh as any).rotation.y += 0.02;
+        showreelVideo?.update();
+        wallVideo?.update();
         this.viewer.renderer.render( this.viewer.scene, this.viewer.camera );
-    }
-
-    updated(changedProps: any) {
-        if (changedProps.has('sectionIdx')) {
-            this.viewer.scene.remove(this.object);
-            if (this.objects[this.sectionIdx]) {
-                this.object = this.objects[this.sectionIdx];
-                const { radius } = getPositionFromStep(this.step%100);
-                this.object.position.set(0, 5, radius-40);  
-            } else {
-                this.object = new THREE.Object3D();
-            }
-            this.viewer.scene.add(this.object);
-            // if (this.sectionIdx == 1) {
-            //     video.play();
-            // }
-        }
-        if (changedProps.has('step')) {
-            this.sectionIdx = Math.floor(this.step/100);
-            const colors = [0xDC143C, 0xFFDC6B, 0xa2c7ff, 0xDC6BFF];
-            const color = new THREE.Color(colors[this.sectionIdx%colors.length]);
-
-            if ((this.step%100) > 15) {
-                const colorInterp = (this.step%100-15)/85;
-                color.lerp(new THREE.Color(colors[(this.sectionIdx+1)%colors.length]), colorInterp);
-            }
-            const { radius } = getPositionFromStep(this.step%100);
-            this.object.position.set(0, 5, radius-40);
-            const lightColor = new THREE.Color(color);
-
-            const {h, l} = lightColor.getHSL({h: 0, s: 0, l: 0});
-            lightColor.setHSL(h,1,l);
-            (this.viewer.ground.material as THREE.MeshLambertMaterial).color = lightColor;
-        }
     }
 
     render() {
         return html`
-        <div style="width: 100%; height: 100%;">
-            <div id="loader" class="lds-ripple" style="opacity: ${this.loaded ? "0" : "1"}; display: none;"><div></div><div></div></div>
-            <mwc-linear-progress progress="${this.sectionIdx / 4}"></mwc-linear-progress>
-            <main style="opacity: ${this.loaded ? "1" : "0"}"> 
-                <div class="header">
-                    <a class=${this.sectionIdx == 0 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 0}}>Home</a>
-                    <a class=${this.sectionIdx == 1 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 1}}>Showreel</a>
-                    <a class=${this.sectionIdx == 2 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 2}}>Work</a>
-                    <a class=${this.sectionIdx == 3 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 3}}>About</a>
-                    <a class=${this.sectionIdx == 4 ? "nav-select": ""} @click=${() => {this.userInteract = true; this.targetSectionIdx = 4}}>Contact</a>
-                </div>
-                <div class="section" id="text1" style="position: absolute; height: 100%; opacity: ${this.sectionIdx === 0 ? '1' : '0'}">
-                    <div class="subtitle">Guillaume Abramovici</div>
-                    <div class="title">Motion Design</div>
-                </div>
-                <div class="section" id="text2" style="position: absolute; height: 100%; opacity: ${this.sectionIdx === 2 ? '1' : '0'}">
-                    Blabla
-                </div>
-                <div id="root" style="height: 100%;"></div>
-            </main>
-        </div>
+        <div id="size"></div></div>
         `
     }
 
