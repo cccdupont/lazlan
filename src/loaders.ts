@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 
 export class VideoMesh extends EventTarget {
 
@@ -104,6 +106,40 @@ export function loadGlb(path: string): Promise<THREE.Group> {
             //     mixers.push( mixer );
             // })
             res(object);
+        })
+    })
+}
+
+export function loadObj(path: string): Promise<THREE.Group> {
+    const loader = new OBJLoader();
+    return new Promise((res) => {
+        loader.load(path, (object) => {
+            // rescale object to be around 40m
+            const initSize = new THREE.Box3()
+                            .setFromObject( object )
+                            .getSize( new THREE.Vector3() )
+                            .length();
+            object.scale.set(0.5/initSize,0.5/initSize,0.5/initSize);
+            res(object);
+        })
+    })
+}
+
+export function loadStl(path: string): Promise<THREE.Mesh> {
+    const loader = new STLLoader();
+    return new Promise((res) => {
+        loader.load(path, (geometry) => {
+
+            const material = new THREE.MeshPhongMaterial( { color: 0x1DA1F2, specular: 0x111111, shininess: 200 } );
+			const mesh = new THREE.Mesh( geometry, material );
+            // rescale object to be around 40m
+            const initSize = new THREE.Box3()
+                            .setFromObject( mesh )
+                            .getSize( new THREE.Vector3() )
+                            .length();
+            mesh.rotation.set( - Math.PI / 2, Math.PI / 2, 0 );
+            mesh.scale.set(0.5/initSize,0.5/initSize,0.5/initSize);
+            res(mesh);
         })
     })
 }

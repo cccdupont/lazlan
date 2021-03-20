@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@material/mwc-linear-progress": "0.19.1",
+    "gltf-to-glb": "^0.1.0",
     "lit-element": "2.4.0",
     "three": "0.115.0"
   },

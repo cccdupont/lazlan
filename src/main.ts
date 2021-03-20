@@ -49,7 +49,13 @@ export class App extends LitElement {
         }
         
         div#size {
-            height: 6000px;
+            height: 8000px;
+        }
+        #text {
+            position: absolute;
+            z-index: 10;
+            top: 5200px;
+            margin-left: 70%;
         }
         
         `;
@@ -103,6 +109,38 @@ export class App extends LitElement {
             m.position.y = -5.5;
             this.viewer.scene.add(m);
         } );
+
+        Loaders.loadObj("models/insta.obj").then((obj) => {
+            obj.position.y = -7;
+            obj.position.x = -0.3;
+            obj.traverse( ( child ) => {
+                //@ts-ignore
+                if ( child instanceof THREE.Mesh ) {
+                    //@ts-ignore
+                    (child.material as THREE.Material).color.setHex(0xdc4262);
+                }
+            } );
+            this.viewer.scene.add(obj);
+        });
+        Loaders.loadStl("models/Twitter_Logo.stl").then((obj) => {
+            obj.position.y = -6.45;
+            obj.position.x = 0.13;
+            this.viewer.scene.add(obj);
+        });
+        Loaders.loadGlb("models/vimeo-logo.glb").then((obj) => {
+            obj.position.y = -6.55;
+            obj.position.x = 0.5;
+            obj.rotation.set( - Math.PI / 2, Math.PI / 2, 0 );
+            obj.scale.set(0.1,0.1,0.1);
+            obj.traverse( ( child ) => {
+                //@ts-ignore
+                if ( child instanceof THREE.Mesh ) {
+                    //@ts-ignore
+                    (child.material as THREE.Material).color.setHex(0x1ab7ea);
+                }
+            } );
+            this.viewer.scene.add(obj);
+        });
     }
 
     firstUpdated() {
@@ -128,6 +166,8 @@ export class App extends LitElement {
             this.viewer.camera.position.y = 0.2 - 5 * t;
         })
         this.viewer.fitWindow();
+        const t = window.scrollY / (5000 - window.innerHeight);
+        this.viewer.camera.position.y = 0.2 - 5 * t;
 
         this.animate3d();
     }
@@ -145,7 +185,8 @@ export class App extends LitElement {
 
     render() {
         return html`
-        <div id="size"></div></div>
+        <div id="size"></div>
+        <p id="text"> Hi :) </p>
         `
     }
 
