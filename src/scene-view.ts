@@ -18,6 +18,10 @@ export class SceneView {
 
   farFog: number = 100;
 
+  indicatorPosition: number = 0;
+
+  scrollHeight: number = 0;
+
   // ground: THREE.Mesh;
 
   // cameraControls: CameraControls;
@@ -53,23 +57,26 @@ export class SceneView {
     // this.scene.add( mesh );
   }
 
+  updateCameraPosition() {
+    const scrollOffset = window.pageYOffset;
+    const scrollPercent = scrollOffset/this.scrollHeight || 0;
+
+    this.indicatorPosition += (scrollPercent - this.indicatorPosition)*0.1;
+    this.camera.position.y = 0.2 -  this.indicatorPosition*6;
+}
+
   /**
    * Recompute camera and renderer and canvas after a window resize.
    * @listens UIEvent#onresize
    */
-   public fitWindow() {
-    // To be called when the parent changes.
-    const parent = this.domElement.parentElement;
-    if (parent) {
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      const aspect = window.innerWidth / window.innerHeight;
-      if (this.camera.type === "PerspectiveCamera") {
-        this.camera.aspect = aspect;
-      }
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      // this.render();
-    }
+  onResize() {
+    this.scrollHeight = window.innerHeight*4;
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    const aspect = window.innerWidth / window.innerHeight;
+    this.camera.aspect = aspect;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.render(this.scene, this.camera);
   }
 
   public isOffScreen(object: THREE.Object3D) {

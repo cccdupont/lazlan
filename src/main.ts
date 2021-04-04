@@ -9,8 +9,6 @@ import { VideoWall } from './video-wall';
 import '@material/mwc-linear-progress';
 
 // const mixers: any[] = [];
-
-
 let showreelVideo: any;
 let wallVideo: any;
 
@@ -49,15 +47,58 @@ export class App extends LitElement {
         }
         
         div#size {
-            height: 8000px;
+            height: 5000px;
         }
-        #text {
+        header {
+            position: fixed;
+            width: 93vw;
+            height: 10vw;
+            top: 0;
+            left: 0;
+            opacity: 1;
+            pointer-events: none;
+            will-change: opacity;
+            z-index: 1;
+        }
+
+        header > .logo {
+            display: block;
             position: absolute;
-            z-index: 10;
-            top: 5200px;
-            margin-left: 70%;
+            height: 5vw;
+            width: 5vw;
+            top: 2.5vw;
+            left: 2.5vw;
+            pointer-events: initial;
+            will-change: transform;
+            background: url(models/logo_min.png) no-repeat 50%;
+            background-size: 100%;
         }
-        
+        header > .right {
+            position: absolute;
+            width: auto;
+            height: auto;
+            top: 5.5vw;
+            right: 0;
+            display: flex;
+            align-items: center;
+            align-content: center;
+            color: #1f1f1f;
+        }
+
+        header > .right > p {
+            width: auto;
+            height: auto;
+            padding: 0 .8vw;
+            font-family: Inter;
+            font-size: 15px;
+            text-underline-offset: 5px;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        header > .right > .selected {
+            text-decoration: underline #44c1f0 2px; 
+        }        
         `;
     }
 
@@ -92,22 +133,33 @@ export class App extends LitElement {
         });
         const loader = new THREE.FontLoader();
 
-        loader.load( 'models/optimer_regular.typeface.json', ( font ) => {
+        loader.load( 'models/optimer_bold.typeface.json', ( font ) => {
 
-            const geometry = new THREE.TextGeometry( 'Hello three.js!', {
+            const params = {
                 font: font,
-                size: 0.1,
-                height: 0.1,
+                size: 0.2,
+                height: 0, // depth
                 curveSegments: 12,
                 bevelEnabled: false
-            } );
+            }
             const materials = [
-                new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } ), // front
-                new THREE.MeshPhongMaterial( { color: 0xffffff } ) // side
+                new THREE.MeshPhongMaterial( { color: 0x70e192, flatShading: true } ), // front
+                new THREE.MeshPhongMaterial( { color: 0x70e192 } ) // side
             ];
-            const m = new THREE.Mesh( geometry, materials );
-            m.position.y = -5.5;
-            this.viewer.scene.add(m);
+
+            const geometryName = new THREE.TextGeometry( 'Abr  movici', params );
+
+            const geometryDescr = new THREE.TextGeometry( 'Hi!', params );
+
+            
+            const t1 = new THREE.Mesh( geometryName, materials );
+            t1.position.x = -0.53;
+            t1.position.y = 0;
+            const t2 = new THREE.Mesh( geometryDescr, materials );
+            t2.position.y = -5.5;
+
+            this.viewer.scene.add(t1);
+            this.viewer.scene.add(t2);
         } );
 
         Loaders.loadObj("models/insta.obj").then((obj) => {
@@ -143,50 +195,86 @@ export class App extends LitElement {
         });
     }
 
+    get container() {
+        return this.shadowRoot!.getElementById("size") as HTMLElement;
+    }
+
     firstUpdated() {
-        //@ts-ignore
-        const container = this.shadowRoot!.getElementById("size") as HTMLElement;
         // this.cameraControls.setContainer(this.shadowRoot!.querySelector("main")!);
 
         setTimeout(() => this.loaded = true, 1000);
-        container.appendChild(this.viewer.domElement);
-        container.addEventListener('wheel', () => {
+        this.container.appendChild(this.viewer.domElement);
+        this.container.addEventListener('wheel', (evt) => {
             if (showreelVideo && this.viewer.isOffScreen(showreelVideo.mesh)) {
                 showreelVideo.play();
             } else {
                 showreelVideo.pause();
             }
-            // if (wallVideo && this.viewer.isOffScreen(wallVideo)) {
-            //     wallVideo.play();
-            // } else {
-            //     wallVideo.pause();
-            // }
-            // t is 0 to 1
-            const t = window.scrollY / (5000 - window.innerHeight);
-            this.viewer.camera.position.y = 0.2 - 5 * t;
-        })
-        this.viewer.fitWindow();
-        const t = window.scrollY / (5000 - window.innerHeight);
-        this.viewer.camera.position.y = 0.2 - 5 * t;
-
+            // // if (wallVideo && this.viewer.isOffScreen(wallVideo)) {
+            // //     wallVideo.play();
+            // // } else {
+            // //     wallVideo.pause();
+            // // }
+            // // t is 0 to 1
+            // const t = window.scrollY / (5000 - window.innerHeight);
+            // this.viewer.camera.position.y = 0.2 - 5 * t;
+            this.onMouseMove(evt);
+        });
+        this.container.addEventListener('mousemove', this.onMouseMove.bind(this));
+        // const t = window.scrollY / (5000 - window.innerHeight);
+        // this.viewer.camera.position.y = 0.2 - 5 * t;
+        window.addEventListener("resize", () => this.viewer.onResize());
+        this.viewer.onResize();
         this.animate3d();
+    }
+
+    onMouseMove(evt: MouseEvent) {
+        
+        const plot = this.viewer.raycast(
+            evt.clientX, evt.clientY, ...wallVideo.children)[0];
+        if (plot) {
+            this.container.style.cursor = 'pointer';
+            plot.scale.set(0.25,0.25,0.25);
+        } else {
+            this.container.style.cursor = 'default';
+            wallVideo.children.forEach((o: any) =>  o.scale.set(0.2,0.2,0.2));
+        }
     }
 
 
     animate3d () {
-
+        this.viewer.updateCameraPosition();
+        this.sectionIdx = this.viewer.camera.position.y > -1 ? 0 :
+                          this.viewer.camera.position.y > -3 ? 1 :
+                          this.viewer.camera.position.y > -5 ? 2 :
+                          this.viewer.camera.position.y > -6 ? 3 : 4;
         requestAnimationFrame( this.animate3d.bind(this) );
-        // (mesh as any).rotation.x += 0.01;
-        // (mesh as any).rotation.y += 0.02;
         showreelVideo?.update();
         wallVideo?.update();
         this.viewer.renderer.render( this.viewer.scene, this.viewer.camera );
     }
+    //@ts-ignore
+    setSection(idx: number = 0) {
+        const pageOffset = idx === 0 ? 0 :
+                           idx === 1 ? 1300 :
+                           idx === 2 ? 2300 :
+                           idx === 3 ? 3300 : 4300;
+        window.scrollTo({top: pageOffset});
+    }
 
     render() {
         return html`
+        <header>
+            <a class="logo"></a>
+            <div class="right">
+                <p class="${this.sectionIdx == 0 ? `selected` : ``}" @click="${() => this.setSection(0)}">Home</p>
+                <p class="${this.sectionIdx == 1 ? `selected` : ``}" @click="${() => this.setSection(1)}">Showreel</p>
+                <p class="${this.sectionIdx == 2 ? `selected` : ``}" @click="${() => this.setSection(2)}">Work</p>
+                <p class="${this.sectionIdx == 3 ? `selected` : ``}" @click="${() => this.setSection(3)}">About</p>
+                <p class="${this.sectionIdx == 4 ? `selected` : ``}" @click="${() => this.setSection(4)}">Contact</p>
+            </div>
+        </header>
         <div id="size"></div>
-        <p id="text"> Hi :) </p>
         `
     }
 

@@ -11,7 +11,8 @@ export class VideoWall extends THREE.Group {
             [-1,-1],[-1, 0],[-1, 1],
             [ 0,-1],[ 0, 0],[ 0, 1],
             [ 1,-1],[ 1, 0],[ 1, 1],
-        ].map((e) => { return [e[0]*0.5, e[1]*0.5] });
+        ].map((e) => ([e[0]*0.5, e[1]*0.5]));
+
         paths.forEach((p, idx) => {
             loadVideo(p).then((v) => {
                 v.play();
